@@ -1,28 +1,37 @@
 <?php
-// Assuming this is your PHP script handling form submission
+include 'config.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Get the form data
     $description = htmlspecialchars($_POST['description']); // Sanitize input
     $file = $_FILES['file'];
 
-    // Check if a file is uploaded
+    $whatsappApiUrl = $whatsappApiUrlSendText;
+    $data = [
+        "chatId" => $chatId,
+        "text" => $description,
+        "session" => $sessionName
+    ];
+
     if ($file['size'] > 0) {
-        // Process the file if uploaded
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
         $file_path = $file['tmp_name'];
         $file_mime = mime_content_type($file_path);
         $file_name = basename($file['name']);
-        $file_url = 'http://192.168.29.157:8003/uploads/' . $file_name; // Adjust with your domain and path
+        $uploadDir = '/var/www/html/wpc/uploads/';
+        $file_url = 'http://139.84.213.199/wpc/uploads/' . $file_name;
 
-        // Move the uploaded file to your server
-        if (move_uploaded_file($file_path, '/var/www/html/wpc/uploads/' . $file_name)) {
+        if (!in_array($file_mime, $allowedMimeTypes)) {
+            echo "Invalid file type.";
+            exit;
+        }
+
+        if (move_uploaded_file($file_path, $uploadDir . $file_name)) {
             $file_data = [
                 "mimetype" => $file_mime,
                 "filename" => $file_name,
                 "url" => $file_url
             ];
 
-            // Create the payload for sending image
             $data = [
                 "chatId" => $chatId,
                 "caption" => $description,
@@ -30,29 +39,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 "file" => $file_data
             ];
 
-            $whatsappApiUrl = $whatsappApiUrlSendImage; // Use send image API endpoint
+            $whatsappApiUrl = $whatsappApiUrlSendImage;
         } else {
             echo "Failed to upload file.";
             exit;
         }
-    } else {
-        // Create the payload for sending text
-        $data = [
-            "chatId" => $chatId,
-            "text" => $description,
-            "session" => $sessionName
-        ];
-
-        $whatsappApiUrl = $whatsappApiUrlSendText; // Use send text API endpoint
     }
 
-    // Convert data to JSON
     $payload = json_encode($data);
-
-    // Initialize cURL
     $ch = curl_init();
-
-    // Set cURL options
     curl_setopt($ch, CURLOPT_URL, $whatsappApiUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -62,28 +57,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
 
-    // Execute the request
     $response = curl_exec($ch);
-
-    // Check for errors
     if (curl_errno($ch)) {
         echo 'Curl error: ' . curl_error($ch);
     }
-
-    // Close cURL session
     curl_close($ch);
 
-    // Decode the response JSON
     $responseData = json_decode($response, true);
 
-    // Check if message was successfully sent
     if (isset($responseData['_data']) && isset($responseData['_data']['id'])) {
         echo 'Message sent successfully to ' . $responseData['_data']['id']['remote'];
     } else {
         echo 'Failed to send message.';
     }
 
-    // Provide feedback to the user
     echo '<br><a href="index.html">Back to Home</a>';
 }
 ?>
