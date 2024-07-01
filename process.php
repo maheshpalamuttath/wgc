@@ -17,8 +17,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $file_path = $file['tmp_name'];
         $file_mime = mime_content_type($file_path);
         $file_name = basename($file['name']);
-        $uploadDir = '/var/www/html/wpc/uploads/';
-        $file_url = 'http://139.84.213.199/wpc/uploads/' . $file_name;
+        $uploadDir = '/var/www/html/wgc/uploads/';
+        $file_url = 'http://139.84.213.199/wgc/uploads/' . $file_name;
 
         if (!in_array($file_mime, $allowedMimeTypes)) {
             echo "Invalid file type.";
