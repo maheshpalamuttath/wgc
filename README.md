@@ -8,9 +8,9 @@ cd /var/www/html/
 
 sudo git clone https://github.com/maheshpalamuttath/wpc.git
 
-sudo chown -R www-data:www-data /var/www/html/wgc/
+sudo chown -R www-data:www-data /var/www/html/wgc/uploads
 
-sudo chmod -R 755 /var/www/html/wgc/
+sudo chmod -R 755 /var/www/html/wgc/uploads
 
 sudo vim /etc/apache2/sites-available/wgc.conf
 
